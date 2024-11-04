@@ -1,3 +1,2 @@
 # RDML-aoneus-docking-station
-
-## rosbags must be imported separately
+rosbags must be imported separately
