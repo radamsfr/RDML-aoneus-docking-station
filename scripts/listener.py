@@ -1,6 +1,8 @@
 import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped
+from sensor_msgs.msg import Image
+from marine_acoustic_msgs.msg import ProjectedSonarImage
 
 f = open("timestamps.pkl", "w")
 
