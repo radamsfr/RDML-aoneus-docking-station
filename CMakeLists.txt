@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   marine_acoustic_msgs
   rospy
+  scipy
+  numpy
   sensor_msgs
   std_msgs
 )
