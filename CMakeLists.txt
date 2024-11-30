@@ -11,8 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   marine_acoustic_msgs
   rospy
-  scipy
-  numpy
   sensor_msgs
   std_msgs
 )
@@ -164,7 +162,8 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/listener.py
+  scripts/camera_listener.py
+  scripts/sonar_listener.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
