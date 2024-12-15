@@ -39,6 +39,7 @@
   <depend>python3-scipy</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>time</depend>
  
 
   <!-- The export tag contains other, unspecified, tags -->
