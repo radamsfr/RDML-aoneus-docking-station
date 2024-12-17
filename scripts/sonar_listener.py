@@ -2,24 +2,25 @@ import rospy
 from scipy.spatial.transform import Rotation as R
 from scipy import linalg
 import numpy as np
+import pickle
 import time
 from geometry_msgs.msg import PoseStamped
 # from sensor_msgs.msg import Image
 from marine_acoustic_msgs.msg import ProjectedSonarImage
 
 
-class SonarPosData:
+class SonarListener:
     def __init__(self):
-        # initialize camera pose data dict. for short-baseline camera poses
-        self.camera_pos_data = {}
-        self.frame = 0
+        # initialize sonar pose data dict. for short-baseline sonar poses
+        self.sonar_data = {}
+        self.sonar_pos = []
+        self.sonar_img = []
         self.bag_started = False
-        self.timeout = 1.0
-        self.last_received_time = 0.0
-    
+        self.frame = 0
         # TODO: sonar position offset matrix (use topic /tf_static)
 
     def callback_pose(self, data):
+        self.bag_started = True
         # collect pose and orientation of camera in the world
         position = data.pose.position
         quaternion = [data.pose.orientation.x, data.pose.orientation.y, 
@@ -28,46 +29,39 @@ class SonarPosData:
         r_mat = R.from_quat(quaternion).as_matrix()
 
         # assemble world_mat
-        world_mat = np.array([[r_mat[0][0], r_mat[0][1], r_mat[0][2], position.x],
+        self.sonar_pos = np.array([[r_mat[0][0], r_mat[0][1], r_mat[0][2], position.x],
                             [r_mat[1][0], r_mat[1][1], r_mat[1][2], position.y],
                             [r_mat[2][0], r_mat[2][1], r_mat[2][2], position.z],
                             [        0.0,         0.0,         0.0,        1.0]])
-        world_mat_inv = linalg.inv(world_mat)
         
         # TEST see output of world_mat and inverse  
-        print(f"TEST world_mat:\n{world_mat}\n")
-        print(f"TEST world_mat_inv:\n{world_mat_inv}\n")
+        print(f"TEST world_mat:\n{self.sonar_pos}\n")
+        
+        self.frame += 1
 
 
     def callback_sonar_img(self, data):
-        #TODO: collect sonar_img data (array)
+        self.sonar_img = np.array([data.image.data])
         
-        #TODO: put camera pose and sonar img into pkl file
-        return
+        print(f"TEST sonar image:\n{self.sonar_img}\n")
+    
 
-    def check_bag_stopped(self, event):
-        """
-        Timer function to check for message inactivity.
-        """           
-        if self.bag_started and self.last_received_time != 0.0:
-            elapsed_time = time.time() - self.last_received_time
-            if elapsed_time > self.timeout:
-                
-                # TODO: save to pkl file
-                
-                rospy.loginfo("No messages received. Saving data to .npz")
-                np.savez("camera_pos_data.npz", **self.camera_pos_data)
-                self.timer.shutdown()
+    def record(self, event):
+        if self.bag_started:
+            self.sonar_data = {'PoseSensor': self.sonar_pos, 'ImagingSonar': self.sonar_img}
+            
+            with open(f"aoneus_data/sonar_data/00{self.frame}.pickle", 'wb') as f:
+                pickle.dump(self.sonar_data, f)
 
     def listener(self):
         rospy.init_node('listener1', anonymous=True)
         rospy.Subscriber('/docking_control/vision_pose/pose', PoseStamped, self.callback_pose)
         rospy.Subscriber('/oculus/sonar_image', ProjectedSonarImage, self.callback_sonar_img)
-        self.timer = rospy.Timer(rospy.Duration(0.1), self.check_bag_stopped)
+        self.timer = rospy.Timer(rospy.Duration(0.1), self.record)
 
         rospy.spin()
 
 if __name__ == '__main__':
-    s = SonarPosData()
+    s = SonarListener()
     print("listening...")
     s.listener()

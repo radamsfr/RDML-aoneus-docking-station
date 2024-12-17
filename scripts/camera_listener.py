@@ -5,7 +5,7 @@ import numpy as np
 import time
 from geometry_msgs.msg import PoseStamped
 
-class CameraPosData:
+class CameraListener:
     def __init__(self):
         # initialize camera pose data dict. for short-baseline camera poses
         self.camera_pos_data = {}
@@ -27,7 +27,6 @@ class CameraPosData:
         self.scale_mat_inv = linalg.inv(self.scale_mat)
         
     def callback(self, data):
-        # 
         self.bag_started = True
         self.last_received_time = time.time()
         
@@ -73,7 +72,7 @@ class CameraPosData:
             elapsed_time = time.time() - self.last_received_time
             if elapsed_time > self.timeout:
                 rospy.loginfo("No messages received. Saving data to .npz")
-                np.savez("camera_pos_data.npz", **self.camera_pos_data)
+                np.savez("aoneus_data/camera_pos_data.npz", **self.camera_pos_data)
                 self.timer.shutdown()
 
 
@@ -95,7 +94,7 @@ class CameraPosData:
 
 
 if __name__ == '__main__':
-    c = CameraPosData()
+    c = CameraListener()
     print("listening")
     c.listener()
     
