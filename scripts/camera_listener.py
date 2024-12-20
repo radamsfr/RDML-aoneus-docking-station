@@ -11,7 +11,7 @@ class CameraListener:
         self.camera_pos_data = {}
         self.frame = 0
         self.bag_started = False
-        self.timeout = 1.0
+        self.timeout = 2.0
         self.last_received_time = 0.0
         
         # TODO: camera position offset matrix (use topic /tf_static)
