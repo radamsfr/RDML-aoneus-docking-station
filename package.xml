@@ -38,8 +38,10 @@
   <depend>python3-numpy</depend>
   <depend>python3-scipy</depend>
   <depend>sensor_msgs</depend>
+  <depend>tf2_msgs</depend>
   <depend>std_msgs</depend>
   <depend>time</depend>
+  <depend>cv_bridge</depend>
  
 
   <!-- The export tag contains other, unspecified, tags -->
