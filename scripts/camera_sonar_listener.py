@@ -38,9 +38,11 @@ class Listener:
         self.timeout = 2.0
         self.last_received_time = 0.0
         
-        # os.mkdir('catkin_ws/aoneus_data/camera_imgs')
-        # os.mkdir('catkin_ws/aoneus_data/sonar_data')
-        # os.mkdir('catkin_ws/aoneus_data/sonar_imgs')
+        # initialize directories for data collection
+        path_to_data = "RDML_aoneus_data"
+        os.makedirs(path_to_data + '/sonar_component/Data', exist_ok = True)
+        os.makedirs(path_to_data + '/sonar_component/imgs', exist_ok = True)
+        os.makedirs(path_to_data + '/camera_component/image', exist_ok = True)
         
         # camera_mat and scale_mat are constants
         self.camera_mat = np.array([[1078.17559,         0., 1010.57086,     0.],
@@ -86,9 +88,7 @@ class Listener:
                 print("pos offsets collected")
                 self.pos_offset_collected = True
                 
-        
-    
-        
+            
     def callback_pose(self, data):
         self.bag_started = True
         self.last_received_time = time.time()
@@ -123,13 +123,14 @@ class Listener:
         
         
     def callback_sonar_img_mat(self, data):
-        self.sonar_img_mat = []
+        self.sonar_img_mat = []        
         for i in data.image.data:
             self.sonar_img_mat.append(np.uint8(i))
 
-        # print(f"TEST sonar image:\n{self.sonar_img_mat}")
-        # print(f"TEST sonar image dtype:\n{type(self.sonar_img_mat[0])}\n")
         self.sonar_img_mat = np.array(self.sonar_img_mat, dtype=np.uint8)
+        # rospy.loginfo(f'shape of sonar img:{self.sonar_img_mat.shape}')
+        self.sonar_img_mat = self.sonar_img_mat.reshape(512, 443)
+        # rospy.loginfo(f'shape of sonar img reshaped:{self.sonar_img_mat.shape}')
         
       
       
@@ -150,8 +151,8 @@ class Listener:
                 self.save_camera()
                 self.save_sonar()
 
-                cv2.imwrite(f"aoneus_data/camera_imgs/{self.frame:03}.png", self.camera_image)
-                cv2.imwrite(f"aoneus_data/sonar_imgs/{self.frame:03}.png", self.sonar_image)
+                cv2.imwrite(f"RDML_aoneus_data/camera_component/image/{self.frame:03}.png", self.camera_image)
+                cv2.imwrite(f"RDML_aoneus_data/sonar_component/imgs/{self.frame:03}.png", self.sonar_image)
                 # print("Wrote image %i" % self.frame)
                     
                 self.frame += 1
@@ -159,7 +160,7 @@ class Listener:
             elapsed_time = time.time() - self.last_received_time
             if elapsed_time > self.timeout:
                 rospy.loginfo("No messages received. Saving camera data to .npz")
-                np.savez("aoneus_data/camera_pos_data.npz", **self.camera_data)
+                np.savez("RDML_aoneus_data/camera_component/camera_pos_data.npz", **self.camera_data)
                 self.timer.shutdown()
                 return
                 
@@ -179,9 +180,9 @@ class Listener:
         
     def save_sonar(self):
         self.sonar_data = {'PoseSensor': self.sonar_pos, 'ImagingSonar': self.sonar_img_mat}
-        # f = open(f"aoneus_data/sonar_data/{self.frame:03}.pkl", "wb")
+        # f = open(f"RDML_aoneus_data/sonar_data/{self.frame:03}.pkl", "wb")
         # pickle.dump(self.sonar_data, f)
-        with open(f"aoneus_data/sonar_data/{self.frame:03}.pkl", 'wb') as f:
+        with open(f"RDML_aoneus_data/sonar_component/Data/{self.frame:03}.pkl", 'wb') as f:
             pickle.dump(self.sonar_data, f)
         
         print(f"TEST sonar data collected and stored, frame {self.frame:03}\n")
