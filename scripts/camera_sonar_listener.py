@@ -24,6 +24,7 @@ class Listener:
         self.sonar_pos = []
         self.sonar_pos_offset = []
         self.sonar_img_mat = []
+        self.sonar_img_mat_temp = []
         
         self.pos_offset_collected = False
         
@@ -37,6 +38,12 @@ class Listener:
         self.bag_started = False
         self.timeout = 2.0
         self.last_received_time = 0.0
+        
+        # # thread locks
+        # self.pose_collecting = False
+        # self.sonar_img_mat_collecting = False
+        # self.camera_image_collecting = False
+        # self.sonar_image_collecting = False
         
         # initialize directories for data collection
         path_to_data = "RDML_aoneus_data"
@@ -90,6 +97,8 @@ class Listener:
                 
             
     def callback_pose(self, data):
+        # rospy.loginfo("CALLBACK POSE")
+        
         self.bag_started = True
         self.last_received_time = time.time()
         
@@ -123,23 +132,24 @@ class Listener:
         
         
     def callback_sonar_img_mat(self, data):
-        self.sonar_img_mat = []        
-        for i in data.image.data:
-            self.sonar_img_mat.append(np.uint8(i))
-
-        self.sonar_img_mat = np.array(self.sonar_img_mat, dtype=np.uint8)
-        # rospy.loginfo(f'shape of sonar img:{self.sonar_img_mat.shape}')
-        self.sonar_img_mat = self.sonar_img_mat.reshape(512, 443)
-        # rospy.loginfo(f'shape of sonar img reshaped:{self.sonar_img_mat.shape}')
+        # rospy.loginfo("CALLBACK SONAR IMG MAT")
         
+        self.sonar_img_mat_temp = []        
+        for i in data.image.data:
+            self.sonar_img_mat_temp.append(np.uint8(i))
+
+        self.sonar_img_mat_temp = np.array(self.sonar_img_mat_temp, dtype=np.uint8)
+        # rospy.loginfo(f'shape of sonar img:{self.sonar_img_mat_temp.shape}')
+        self.sonar_img_mat = self.sonar_img_mat_temp.reshape(512, 443)
+        # rospy.loginfo(f'shape of sonar img reshaped:{self.sonar_img_mat.shape}')
       
       
     def callback_camera_img(self, data):
-        # rospy.loginfo('Camera Image received...')
+        # rospy.loginfo("CALLBACK CAMERA IMAGE")
         self.camera_image = self.bridge.imgmsg_to_cv2(data)
         
     def callback_sonar_img(self, data):
-        # rospy.loginfo('Sonar Image received...')
+        # rospy.loginfo("CALLBACK SONAR IMAGE")
         self.sonar_image = self.bridge.imgmsg_to_cv2(data)
       
         
@@ -148,8 +158,8 @@ class Listener:
             
             if (len(self.camera_pos) and len(self.sonar_img_mat) and len(self.sonar_pos) and
                 self.camera_image is not None and self.sonar_image is not None):
-                self.save_camera()
                 self.save_sonar()
+                self.save_camera()
 
                 cv2.imwrite(f"RDML_aoneus_data/camera_component/image/{self.frame:03}.png", self.camera_image)
                 cv2.imwrite(f"RDML_aoneus_data/sonar_component/imgs/{self.frame:03}.png", self.sonar_image)
@@ -175,16 +185,25 @@ class Listener:
         self.camera_data[f"scale_mat_{self.frame}"] = self.scale_mat
         self.camera_data[f"scale_mat_inv_{self.frame}"] = self.scale_mat_inv
         
-        print(f"TEST camera data collected and stored, frame {self.frame:03}\n")
+        rospy.loginfo(f"camera data collected and stored, frame {self.frame:03}\n")
         
         
     def save_sonar(self):
-        self.sonar_data = {'PoseSensor': self.sonar_pos, 'ImagingSonar': self.sonar_img_mat}
+        # rospy.loginfo(f'len of before save sonar img:{len(self.sonar_img_mat)}')
+        # rospy.loginfo(f'type of before save sonar img:{type(self.sonar_img_mat)}')
+        # rospy.loginfo(f'shape of before save sonar img:{self.sonar_img_mat.shape}')
+        
+        self.sonar_data = {
+            'PoseSensor': self.sonar_pos, 
+            'ImagingSonar': self.sonar_img_mat
+            }
+        
+        # rospy.loginfo(f'shape of after save sonar img:{self.sonar_data["ImagingSonar"].shape}')
         
         with open(f"RDML_aoneus_data/sonar_component/Data/{self.frame:03}.pkl", 'wb') as f:
             pickle.dump(self.sonar_data, f)
         
-        print(f"TEST sonar data collected and stored, frame {self.frame:03}\n")
+        rospy.loginfo(f"sonar data collected and stored, frame {self.frame:03}\n")
         
         
     def listener(self):
