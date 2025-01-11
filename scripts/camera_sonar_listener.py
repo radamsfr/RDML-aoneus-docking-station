@@ -39,12 +39,6 @@ class Listener:
         self.timeout = 2.0
         self.last_received_time = 0.0
         
-        # # thread locks
-        # self.pose_collecting = False
-        # self.sonar_img_mat_collecting = False
-        # self.camera_image_collecting = False
-        # self.sonar_image_collecting = False
-        
         # initialize directories for data collection
         path_to_data = "RDML_aoneus_data"
         os.makedirs(path_to_data + '/sonar_component/Data', exist_ok = True)
@@ -98,7 +92,6 @@ class Listener:
             
     def callback_pose(self, data):
         # rospy.loginfo("CALLBACK POSE")
-        
         self.bag_started = True
         self.last_received_time = time.time()
         
@@ -115,25 +108,14 @@ class Listener:
                             [r_mat[2][0], r_mat[2][1], r_mat[2][2], position.z],
                             [        0.0,         0.0,         0.0,        1.0]])
         
-        
-        # self.world_mat_inv = linalg.inv(self.world_mat)
         self.camera_pos = np.dot(self.camera_pos_offset, world_mat)
-        self.sonar_pos = np.dot(self.sonar_pos_offset, world_mat)
-        
-        
-        # print(f"TEST camera_mat:\n{self.camera_mat}\n")
-        # print(f"TEST camera_mat_inv:\n{self.camera_mat_inv}\n")
-        # print(f"TEST camera_mat:\n{self.camera_pos}\n")
-        # print(f"TEST world_mat_inv:\n{self.world_mat_inv}\n")
-        # print(f"TEST scale_mat:\n{self.scale_mat}\n")
-        # print(f"TEST scale_mat_inv:\n{self.scale_mat_inv}\n")
-        
-        # print(f"TEST sonar_mat:\n{self.sonar_pos}\n")
+        # rospy.loginfo(f"TEST camera_mat:\n{self.camera_pos}\n")
+        self.sonar_pos = np.dot(self.sonar_pos_offset, world_mat)        
+        # rospy.loginfo(f"TEST sonar_mat:\n{self.sonar_pos}\n")
         
         
     def callback_sonar_img_mat(self, data):
         # rospy.loginfo("CALLBACK SONAR IMG MAT")
-        
         self.sonar_img_mat_temp = []        
         for i in data.image.data:
             self.sonar_img_mat_temp.append(np.uint8(i))
@@ -189,17 +171,11 @@ class Listener:
         
         
     def save_sonar(self):
-        # rospy.loginfo(f'len of before save sonar img:{len(self.sonar_img_mat)}')
-        # rospy.loginfo(f'type of before save sonar img:{type(self.sonar_img_mat)}')
-        # rospy.loginfo(f'shape of before save sonar img:{self.sonar_img_mat.shape}')
-        
         self.sonar_data = {
             'PoseSensor': self.sonar_pos, 
             'ImagingSonar': self.sonar_img_mat
             }
-        
-        # rospy.loginfo(f'shape of after save sonar img:{self.sonar_data["ImagingSonar"].shape}')
-        
+
         with open(f"RDML_aoneus_data/sonar_component/Data/{self.frame:03}.pkl", 'wb') as f:
             pickle.dump(self.sonar_data, f)
         
