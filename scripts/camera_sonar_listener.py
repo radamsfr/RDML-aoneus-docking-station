@@ -180,8 +180,7 @@ class Listener:
         
     def save_sonar(self):
         self.sonar_data = {'PoseSensor': self.sonar_pos, 'ImagingSonar': self.sonar_img_mat}
-        # f = open(f"RDML_aoneus_data/sonar_data/{self.frame:03}.pkl", "wb")
-        # pickle.dump(self.sonar_data, f)
+        
         with open(f"RDML_aoneus_data/sonar_component/Data/{self.frame:03}.pkl", 'wb') as f:
             pickle.dump(self.sonar_data, f)
         
