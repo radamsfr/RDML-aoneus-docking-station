@@ -128,11 +128,11 @@ class Listener:
       
     def callback_camera_img(self, data):
         # rospy.loginfo("CALLBACK CAMERA IMAGE")
-        self.camera_image = self.bridge.imgmsg_to_cv2(data)
+        self.camera_image = cv2.resize(self.bridge.imgmsg_to_cv2(data), (512, 443))
         
     def callback_sonar_img(self, data):
         # rospy.loginfo("CALLBACK SONAR IMAGE")
-        self.sonar_image = self.bridge.imgmsg_to_cv2(data)
+        self.sonar_image = cv2.cvtColor(self.bridge.imgmsg_to_cv2(data), cv2.COLOR_BGR2GRAY)
       
         
     def record(self, event):
