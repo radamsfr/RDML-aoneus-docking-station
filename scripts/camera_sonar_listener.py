@@ -123,6 +123,10 @@ class Listener:
         self.sonar_img_mat_temp = np.array(self.sonar_img_mat_temp, dtype=np.uint8)
         # rospy.loginfo(f'shape of sonar img:{self.sonar_img_mat_temp.shape}')
         self.sonar_img_mat = self.sonar_img_mat_temp.reshape(512, 443)
+        
+        #TODO may have to resize sonar image matrix
+        # self.sonar_img_mat = resize(self.sonar_image_mat, (115,100), anti_aliasing=True)
+        # print("sonar mat shape:", self.sonar_img_mat.shape)
         # rospy.loginfo(f'shape of sonar img reshaped:{self.sonar_img_mat.shape}')
       
       
@@ -133,6 +137,7 @@ class Listener:
     def callback_sonar_img(self, data):
         # rospy.loginfo("CALLBACK SONAR IMAGE")
         self.sonar_image = cv2.cvtColor(self.bridge.imgmsg_to_cv2(data), cv2.COLOR_BGR2GRAY)
+        self.sonar_image = cv2.resize(self.sonar_image, (115, 100))
       
         
     def record(self, event):
