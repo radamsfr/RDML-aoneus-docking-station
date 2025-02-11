@@ -30,7 +30,11 @@ class Listener:
         
         # image data collection
         self.camera_image = None
+        self.camera_W = 512
+        self.camera_H = 443
         self.sonar_image = None
+        self.sonar_W = 50
+        self.sonar_H = 64
         self.bridge = CvBridge()
           
         # initialize bag start/stop vars
@@ -122,7 +126,9 @@ class Listener:
 
         self.sonar_img_mat_temp = np.array(self.sonar_img_mat_temp, dtype=np.uint8)
         # rospy.loginfo(f'shape of sonar img:{self.sonar_img_mat_temp.shape}')
-        self.sonar_img_mat = self.sonar_img_mat_temp.reshape(512, 443)
+        # self.sonar_img_mat = self.sonar_img_mat_temp.reshape(512, 443)
+        self.sonar_img_mat = cv2.resize(self.sonar_img_mat_temp.reshape(512, 443), (69, 60))[0:50, 0:64]
+        
         
         #TODO may have to resize sonar image matrix
         # self.sonar_img_mat = resize(self.sonar_image_mat, (115,100), anti_aliasing=True)
@@ -136,8 +142,8 @@ class Listener:
         
     def callback_sonar_img(self, data):
         # rospy.loginfo("CALLBACK SONAR IMAGE")
-        self.sonar_image = cv2.cvtColor(self.bridge.imgmsg_to_cv2(data), cv2.COLOR_BGR2GRAY)
-        self.sonar_image = cv2.resize(self.sonar_image, (115, 100))
+        # self.sonar_image = cv2.cvtColor(self.bridge.imgmsg_to_cv2(data), cv2.COLOR_BGR2GRAY)
+        self.sonar_image = cv2.resize(cv2.cvtColor(self.bridge.imgmsg_to_cv2(data), cv2.COLOR_BGR2GRAY), (69, 60))[0:50, 0:64]
       
         
     def record(self, event):
